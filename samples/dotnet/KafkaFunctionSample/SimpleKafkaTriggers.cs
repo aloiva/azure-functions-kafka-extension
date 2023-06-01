@@ -13,37 +13,37 @@ namespace KafkaFunctionSample
 {
     public class SimpleKafkaTriggers
     {
-        [FunctionName(nameof(ConsoleConsumer))]
-        public void ConsoleConsumer(
-        [KafkaTrigger(
-            "LocalBroker",
-            "stringTopicTenPartitions",
-            ConsumerGroup = "$Default",
-            AuthenticationMode = BrokerAuthenticationMode.Plain)] KafkaEventData<string>[] kafkaEvents,
-            ILogger logger)
-        {
-            foreach(var kafkaEvent in kafkaEvents)
-                logger.LogInformation(kafkaEvent.Value.ToString());
-        }
+        //[FunctionName(nameof(ConsoleConsumer))]
+        //public void ConsoleConsumer(
+        //[KafkaTrigger(
+        //    "LocalBroker",
+        //    "stringTopicTenPartitions",
+        //    ConsumerGroup = "$Default",
+        //    AuthenticationMode = BrokerAuthenticationMode.Plain)] KafkaEventData<string>[] kafkaEvents,
+        //    ILogger logger)
+        //{
+        //    foreach(var kafkaEvent in kafkaEvents)
+        //        logger.LogInformation(kafkaEvent.Value.ToString());
+        //}
 
-        [FunctionName(nameof(ConsoleProducer))]
-        public static IActionResult ConsoleProducer(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-        [Kafka("LocalBroker", "stringTopicTenPartitions")] out string kafkaEventData,
-        ILogger log)
-        {
-            try
-            {
-                var data = new StreamReader(req.Body).ReadToEnd();
-                kafkaEventData = data + ":1:" + DateTime.UtcNow.Ticks;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Are you sure the topic 'stringTopic' exists? To create using Confluent Docker quickstart run this command: 'docker-compose exec broker kafka-topics --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 10 --topic stringTopicTenPartitions'", ex);
-            }
+        //[FunctionName(nameof(ConsoleProducer))]
+        //public static IActionResult ConsoleProducer(
+        //[HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+        //[Kafka("LocalBroker", "stringTopicTenPartitions")] out string kafkaEventData,
+        //ILogger log)
+        //{
+        //    try
+        //    {
+        //        var data = new StreamReader(req.Body).ReadToEnd();
+        //        kafkaEventData = data + ":1:" + DateTime.UtcNow.Ticks;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception("Are you sure the topic 'stringTopic' exists? To create using Confluent Docker quickstart run this command: 'docker-compose exec broker kafka-topics --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 10 --topic stringTopicTenPartitions'", ex);
+        //    }
 
-            return new OkResult();
-        }
+        //    return new OkResult();
+        //}
 
         // EventHubs Configuration sample
         //

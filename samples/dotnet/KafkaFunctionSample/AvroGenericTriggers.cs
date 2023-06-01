@@ -40,35 +40,35 @@ namespace KafkaFunctionSample
   ]
 }";
 
-        [FunctionName(nameof(PageViews))]
-        public static void PageViews(
-           [KafkaTrigger("LocalBroker", "pageviews", AvroSchema = PageViewsSchema, ConsumerGroup = "azfunc")] KafkaEventData<string, GenericRecord>[] kafkaEvents,
-           long[] offsetArray,
-           int[] partitionArray,
-           string[] topicArray,
-           DateTime[] timestampArray,
-           ILogger logger)
-        {
-            for (int i = 0; i < kafkaEvents.Length; i++)
-            {
-                var kafkaEvent = kafkaEvents[i];
-                if (kafkaEvent.Value is GenericRecord genericRecord)
-                {
-                    logger.LogInformation($"[{timestampArray[i]}] {topicArray[i]} / {partitionArray[i]} / {offsetArray[i]}: {GenericToJson(genericRecord)}");
-                }
-            }
-        }
+        //[FunctionName(nameof(PageViews))]
+        //public static void PageViews(
+        //   [KafkaTrigger("LocalBroker", "pageviews", AvroSchema = PageViewsSchema, ConsumerGroup = "azfunc")] KafkaEventData<string, GenericRecord>[] kafkaEvents,
+        //   long[] offsetArray,
+        //   int[] partitionArray,
+        //   string[] topicArray,
+        //   DateTime[] timestampArray,
+        //   ILogger logger)
+        //{
+        //    for (int i = 0; i < kafkaEvents.Length; i++)
+        //    {
+        //        var kafkaEvent = kafkaEvents[i];
+        //        if (kafkaEvent.Value is GenericRecord genericRecord)
+        //        {
+        //            logger.LogInformation($"[{timestampArray[i]}] {topicArray[i]} / {partitionArray[i]} / {offsetArray[i]}: {GenericToJson(genericRecord)}");
+        //        }
+        //    }
+        //}
 
-        public static string GenericToJson(GenericRecord record)
-        {
-            var props = new Dictionary<string, object>();
-            foreach (var field in record.Schema.Fields)
-            {
-                if (record.TryGetValue(field.Name, out var value))
-                    props[field.Name] = value;
-            }
+        //public static string GenericToJson(GenericRecord record)
+        //{
+        //    var props = new Dictionary<string, object>();
+        //    foreach (var field in record.Schema.Fields)
+        //    {
+        //        if (record.TryGetValue(field.Name, out var value))
+        //            props[field.Name] = value;
+        //    }
 
-            return JsonConvert.SerializeObject(props);
-        }
+        //    return JsonConvert.SerializeObject(props);
+        //}
     }
 }
