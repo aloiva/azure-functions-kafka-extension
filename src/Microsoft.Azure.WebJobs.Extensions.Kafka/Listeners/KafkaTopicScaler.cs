@@ -83,6 +83,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
         public Task<KafkaTriggerMetrics> GetMetricsAsync()
         {
+            var startTime = DateTime.UtcNow;
+            this.logger.LogInformation($"started getting metrics at {startTime}.");
             var operationTimeout = TimeSpan.FromSeconds(5);
             var allPartitions = topicPartitions.Value;
             if (allPartitions == null)
@@ -107,10 +109,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                     if (commited.Offset == Offset.Unset)
                     {
                         diff = watermark.High.Value;
+                        this.logger.LogInformation($"for {topicPartition}, high watermark: {watermark.High.Value}, low watermark: {watermark.Low.Value}, committed = ({commited.Offset.Value}) diff = {diff}.");
                     }
                     else
                     {
                         diff = watermark.High.Value - commited.Offset.Value;
+                        this.logger.LogInformation($"for {topicPartition}, high watermark: {watermark.High.Value}, low watermark: {watermark.Low.Value}, committed = (unset) diff = {diff}.");
                     }
 
                     totalLag += diff;
@@ -127,7 +131,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             {
                 logger.LogInformation("Total lag in '{topic}' is {totalLag}, highest partition lag found in {partition} with value of {offsetDifference}", this.topicName, totalLag, partitionWithHighestLag.Value, highestPartitionLag);
             }
-
+            var endTime = DateTime.UtcNow;
+            this.logger.LogInformation($"ended gettiung metrics at {endTime}. took time: {endTime - startTime}.");
             return Task.FromResult(new KafkaTriggerMetrics(totalLag, allPartitions.Count));
         }
 
@@ -143,6 +148,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
         private ScaleStatus GetScaleStatusCore(int workerCount, KafkaTriggerMetrics[] metrics)
         {
+            var startTime = DateTime.UtcNow;
+            this.logger.LogInformation($"started getting scale status at {startTime}");
             var status = new ScaleStatus
             {
                 Vote = ScaleVote.None,
@@ -150,9 +157,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
             const int NumberOfSamplesToConsider = 5;
 
+            var endTime = DateTime.Now;
+
             // At least 5 samples are required to make a scale decision for the rest of the checks.
             if (metrics == null || metrics.Length < NumberOfSamplesToConsider)
             {
+                endTime = DateTime.UtcNow;
+                this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
                 return status;
             }
 
@@ -172,7 +183,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                     this.logger.LogInformation("WorkerCount ({workerCount}) > PartitionCount ({partitionCount}). For topic {topicName}, for consumer group {consumerGroup}.", workerCount, partitionCount, this.topicName, this.consumerGroup);
                     this.logger.LogInformation("Number of instances ({workerCount}) is too high relative to number of partitions ({partitionCount}). For topic {topicName}, for consumer group {consumerGroup}.", workerCount, partitionCount, this.topicName, this.consumerGroup);
                 }
-
+                endTime = DateTime.UtcNow;
+                this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
                 return status;
             }
 
@@ -186,7 +198,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 {
                     this.logger.LogInformation("Topic '{topicName}', for consumer group {consumerGroup}' is idle.", this.topicName, this.consumerGroup);
                 }
-
+                endTime = DateTime.UtcNow;
+                this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
                 return status;
             }
 
@@ -202,6 +215,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                         this.logger.LogInformation("Total lag ({totalLag}) is less than the number of instances ({workerCount}). Scale out, for topic {topicName}, for consumer group {consumerGroup}.", totalLag, workerCount, topicName, consumerGroup);
                     }
                 }
+                endTime = DateTime.UtcNow;
+                this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
                 return status;
             }
             
@@ -224,6 +239,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                         {
                             this.logger.LogInformation("Total lag ({totalLag}) is less than the number of instances ({workerCount}). Scale out, for topic {topicName}, for consumer group {consumerGroup}.", totalLag, workerCount, topicName, consumerGroup);
                         }
+                        endTime = DateTime.UtcNow;
+                        this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
                         return status;
                     }
                 }
@@ -253,7 +270,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                     }                
                 }
             }
-              
+            endTime = DateTime.UtcNow;
+            this.logger.LogInformation($"returning getting scale status at {endTime}. took time {endTime - startTime}");
             return status;
         }
 
