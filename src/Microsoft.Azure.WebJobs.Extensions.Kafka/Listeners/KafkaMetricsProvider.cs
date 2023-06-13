@@ -22,6 +22,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         private readonly IConsumer<TKey, TValue> consumer;
         private readonly ILogger logger;
         private readonly Lazy<List<TopicPartition>> topicPartitions;
+        private readonly DateTime someTime;
 
         public KafkaMetricsProvider(string topicName, AdminClientConfig adminClientConfig, IConsumer<TKey, TValue> consumer, ILogger logger)
         {
@@ -30,6 +31,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.logger = logger;
             this.consumer = consumer;
             this.topicPartitions = new Lazy<List<TopicPartition>>(LoadTopicPartitions);
+            this.someTime = DateTime.UtcNow;
         }
 
         public Task<KafkaTriggerMetrics> GetMetricsAsync()
@@ -134,7 +136,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             }
             var endTime = DateTime.UtcNow;
             this.logger.LogInformation($"Consumer takes {endTime - startTime} for the watermark offset calls.");
-            this.logger.LogWarning($"Lag is {totalLag} at {endTime}");
+            this.logger.LogWarning($"Lag is {totalLag} at {endTime.Subtract(someTime).TotalSeconds}");
             return totalLag;
         }
     }
