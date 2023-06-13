@@ -95,6 +95,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             .SetPartitionsAssignedHandler((_, e) =>
             {
                 logger.LogInformation($"Assigned partitions: [{string.Join(", ", e)}]");
+                logger.LogWarning($"Assigned partitions: [{string.Join(", ", e)}]");
             })
             .SetPartitionsRevokedHandler((_, e) =>
             {

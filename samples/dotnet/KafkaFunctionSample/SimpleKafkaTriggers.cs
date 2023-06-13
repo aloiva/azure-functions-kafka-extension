@@ -16,16 +16,16 @@ namespace KafkaFunctionSample
         [FunctionName("KafkaTrigger2")]
         public static void Run(
             [KafkaTrigger("BrokerList",
-                          "topic4",
+                          "topic3",
                           Username = "$ConnectionString",
-                          Password = "%test4ConnString%",
+                          Password = "%test3ConnString%",
                           //Password = "%EventHubConnectionString%",
                           Protocol = BrokerProtocol.SaslSsl,
                           AuthenticationMode = BrokerAuthenticationMode.Plain,
                           ConsumerGroup = "testcg1",
                           LagThreshold = 100)] KafkaEventData<string> kevent, ILogger log)
         {
-            log.LogInformation($"C# Kafka trigger function processed a message: {kevent.Value}");
+            // log.LogInformation($"C# Kafka trigger function processed a message: {kevent.Value}");
         }
         //[FunctionName(nameof(ConsoleConsumer))]
         //public void ConsoleConsumer(
