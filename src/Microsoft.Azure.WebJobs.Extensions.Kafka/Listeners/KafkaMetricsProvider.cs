@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO;
 using Confluent.Kafka;
 using Microsoft.Azure.WebJobs.Host.Scale;
 using Microsoft.Extensions.Logging;
@@ -134,7 +135,11 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             }
             var endTime = DateTime.UtcNow;
             this.logger.LogInformation($"Consumer takes {endTime - startTime} for the watermark offset calls.");
-            this.logger.LogWarning($"Lag is {totalLag} at {endTime}");
+            this.logger.LogWarning($"{startTime},{endTime},{endTime.Subtract(startTime).TotalSeconds},{totalLag}");
+            using (var writer = new StreamWriter("C:\\Users\\t-pgaddam\\tmp\\QueryLogs.txt", true))
+            {
+                writer.WriteLine($"{endTime.Subtract(startTime).TotalSeconds},{totalLag},{startTime},{endTime}");
+            }
             return totalLag;
         }
     }
