@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Confluent.Kafka;
 using Microsoft.Azure.WebJobs.Host.Executors;
 using Microsoft.Azure.WebJobs.Host.Listeners;
@@ -50,9 +53,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         //protected for the unit test
         protected Lazy<KafkaTopicScaler<TKey, TValue>> topicScaler;
         protected Lazy<KafkaTargetScaler<TKey, TValue>> targetScaler;
-        private DateTime assignTime;
-        private DateTime revokeTime;
-        bool revoked;
 
         /// <summary>
         /// Gets the value deserializer
@@ -85,8 +85,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.metricsProvider = new Lazy<KafkaMetricsProvider<TKey, TValue>>(CreateMetricsProvider);
             this.topicScaler = new Lazy<KafkaTopicScaler<TKey, TValue>>(CreateTopicScaler);
             this.targetScaler = new Lazy<KafkaTargetScaler<TKey, TValue>>(CreateTargetScaler);
-            this.revoked = false;
-            assignTime = revokeTime = DateTime.MinValue;
         }
 
         private IConsumer<TKey, TValue> CreateConsumer()
@@ -95,6 +93,11 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
             var builder = this.CreateConsumerBuilder(GetConsumerConfiguration());
 
+            using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+            {
+                writer.WriteLine($"created {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+            }
+
             builder.SetErrorHandler((_, e) =>
             {
                 logger.LogError(e.Reason);
@@ -102,10 +105,18 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             .SetPartitionsAssignedHandler((_, e) =>
             {
                 logger.LogInformation($"Assigned partitions: [{string.Join(", ", e)}]");
+                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                {
+                    writer.WriteLine($"assigned {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+                }
             })
             .SetPartitionsRevokedHandler((_, e) =>
             {
                 logger.LogInformation($"Revoked partitions: [{string.Join(", ", e)}]");
+                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                {
+                    writer.WriteLine($"revoked {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+                }
             });
 
             if (ValueDeserializer != null)
