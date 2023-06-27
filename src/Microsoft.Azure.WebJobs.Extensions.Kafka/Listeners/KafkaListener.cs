@@ -53,6 +53,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         //protected for the unit test
         protected Lazy<KafkaTopicScaler<TKey, TValue>> topicScaler;
         protected Lazy<KafkaTargetScaler<TKey, TValue>> targetScaler;
+        private DateTime startTime;
 
         /// <summary>
         /// Gets the value deserializer
@@ -95,7 +96,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
             using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
             {
-                writer.WriteLine($"created {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+                startTime = DateTime.UtcNow;
+                writer.WriteLineAsync($"created {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
             }
 
             builder.SetErrorHandler((_, e) =>
@@ -107,7 +109,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 logger.LogInformation($"Assigned partitions: [{string.Join(", ", e)}]");
                 using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
                 {
-                    writer.WriteLine($"assigned {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+                    writer.WriteLineAsync($"assigned {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
                 }
             })
             .SetPartitionsRevokedHandler((_, e) =>
@@ -115,7 +117,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 logger.LogInformation($"Revoked partitions: [{string.Join(", ", e)}]");
                 using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
                 {
-                    writer.WriteLine($"revoked {Process.GetCurrentProcess().Id}: {DateTime.UtcNow}");
+                    writer.WriteLineAsync($"revoked {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
                 }
             });
 
