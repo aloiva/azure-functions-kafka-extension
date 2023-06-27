@@ -50,6 +50,9 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         //protected for the unit test
         protected Lazy<KafkaTopicScaler<TKey, TValue>> topicScaler;
         protected Lazy<KafkaTargetScaler<TKey, TValue>> targetScaler;
+        private DateTime assignTime;
+        private DateTime revokeTime;
+        bool revoked;
 
         /// <summary>
         /// Gets the value deserializer
@@ -82,6 +85,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.metricsProvider = new Lazy<KafkaMetricsProvider<TKey, TValue>>(CreateMetricsProvider);
             this.topicScaler = new Lazy<KafkaTopicScaler<TKey, TValue>>(CreateTopicScaler);
             this.targetScaler = new Lazy<KafkaTargetScaler<TKey, TValue>>(CreateTargetScaler);
+            this.revoked = false;
+            assignTime = revokeTime = DateTime.MinValue;
         }
 
         private IConsumer<TKey, TValue> CreateConsumer()
