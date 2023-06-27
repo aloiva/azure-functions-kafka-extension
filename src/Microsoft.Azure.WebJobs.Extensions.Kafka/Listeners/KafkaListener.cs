@@ -54,6 +54,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         protected Lazy<KafkaTopicScaler<TKey, TValue>> topicScaler;
         protected Lazy<KafkaTargetScaler<TKey, TValue>> targetScaler;
         private DateTime startTime;
+        private DateTime revokeTime;
+        bool revoked;
 
         /// <summary>
         /// Gets the value deserializer
@@ -99,6 +101,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 startTime = DateTime.UtcNow;
                 writer.WriteLineAsync($"created {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
             }
+            revoked = false;
 
             builder.SetErrorHandler((_, e) =>
             {
@@ -107,18 +110,31 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             .SetPartitionsAssignedHandler((_, e) =>
             {
                 logger.LogInformation($"Assigned partitions: [{string.Join(", ", e)}]");
-                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                if (revoked == false)
                 {
-                    writer.WriteLineAsync($"assigned {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
+                    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                    {
+                        writer.WriteLineAsync($"assigned {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
+                    }
+                }
+                else
+                {
+                    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                    {
+                        writer.WriteLineAsync($"reassigned {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - revokeTime).TotalMilliseconds}");
+                    }
+                    revoked = false;
                 }
             })
             .SetPartitionsRevokedHandler((_, e) =>
             {
                 logger.LogInformation($"Revoked partitions: [{string.Join(", ", e)}]");
-                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
-                {
-                    writer.WriteLineAsync($"revoked {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
-                }
+                revoked = true;
+                revokeTime = DateTime.UtcNow;
+                //using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                //{
+                //    writer.WriteLineAsync($"revoked {Process.GetCurrentProcess().Id} {(DateTime.UtcNow - startTime).TotalMilliseconds}");
+                //}
             });
 
             if (ValueDeserializer != null)
