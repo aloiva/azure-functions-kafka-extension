@@ -54,8 +54,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         protected Lazy<KafkaTopicScaler<TKey, TValue>> topicScaler;
         protected Lazy<KafkaTargetScaler<TKey, TValue>> targetScaler;
         private DateTime startTime;
-        private DateTime revokeTime;
-        bool revoked;
+        //private DateTime revokeTime;
+        //bool revoked;
 
         /// <summary>
         /// Gets the value deserializer
@@ -96,18 +96,24 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
             var builder = this.CreateConsumerBuilder(GetConsumerConfiguration());
 
-            using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
-            {
-                startTime = DateTime.UtcNow;
-                writer.WriteLineAsync($"created,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - startTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
-            }
-            revoked = false;
+            //using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+            //{
+            //    startTime = DateTime.UtcNow;
+            //    writer.WriteLineAsync($"created,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - startTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
+            //}
+            //revoked = false;
 
             //using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
             //{
             //    startTime = DateTime.UtcNow;
             //    writer.WriteLineAsync($"created,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).Ticks}");
             //}
+
+            using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+            {
+                startTime = DateTime.UtcNow;
+                writer.WriteLineAsync($"created,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).ToLongTimeString()}");
+            }
 
             builder.SetErrorHandler((_, e) =>
             {
@@ -116,32 +122,38 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             .SetPartitionsAssignedHandler((_, e) =>
             {
                 logger.LogInformation($"Assigned partitions: [{string.Join(", ", e)}]");
-                if (revoked == false)
-                {
-                    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
-                    {
-                        writer.WriteLineAsync($"assigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - startTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
-                    }
-                }
-                else
-                {
-                    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
-                    {
-                        writer.WriteLineAsync($"reassigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - revokeTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
-                    }
-                    revoked = false;
-                }
+                //if (revoked == false)
+                //{
+                //    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                //    {
+                //        writer.WriteLineAsync($"assigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - startTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
+                //    }
+                //}
+                //else
+                //{
+                //    using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                //    {
+                //        writer.WriteLineAsync($"reassigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow - revokeTime).TotalMilliseconds},{(DateTime.UtcNow - startTime).TotalMilliseconds}");
+                //    }
+                //    revoked = false;
+                //}
 
                 //using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
                 //{
                 //    writer.WriteLineAsync($"assigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).Ticks}");
                 //}
+
+                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                {
+                    startTime = DateTime.UtcNow;
+                    writer.WriteLineAsync($"assigned,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).ToLongTimeString()}");
+                }
             })
             .SetPartitionsRevokedHandler((_, e) =>
             {
                 logger.LogInformation($"Revoked partitions: [{string.Join(", ", e)}]");
-                revoked = true;
-                revokeTime = DateTime.UtcNow;
+                //revoked = true;
+                //revokeTime = DateTime.UtcNow;
 
                 //using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
                 //{
@@ -152,6 +164,11 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 //{
                 //    writer.WriteLineAsync($"revoked,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).Ticks}");
                 //}
+                using (var writer = new StreamWriter($"C:\\Users\\t-pgaddam\\tmp\\assignLogs{Process.GetCurrentProcess().Id}.txt", true))
+                {
+                    startTime = DateTime.UtcNow;
+                    writer.WriteLineAsync($"revoked,{Process.GetCurrentProcess().Id},{(DateTime.UtcNow).ToLongTimeString()}");
+                }
             });
 
             if (ValueDeserializer != null)
