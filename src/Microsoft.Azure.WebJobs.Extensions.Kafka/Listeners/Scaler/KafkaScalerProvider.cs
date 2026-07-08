@@ -60,13 +60,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 adminConfig.SaslUsername = config.ResolveSecureSetting(nameResolver, kafkaMetaData.Username);
                 adminConfig.SslKeyPassword = config.ResolveSecureSetting(nameResolver, kafkaMetaData.SslKeyPassword);
                 adminConfig.SslCertificatePem = config.ResolveSecureSetting(nameResolver, kafkaMetaData.SslCertificatePEM);
-                adminConfig.SslCaPem = ExtractCertificate(config.ResolveSecureSetting(nameResolver, kafkaMetaData.SslCaPEM));
+                adminConfig.SslCaPem = PemHelper.ExtractCertificate(config.ResolveSecureSetting(nameResolver, kafkaMetaData.SslCaPEM));
                 adminConfig.SslKeyPem = config.ResolveSecureSetting(nameResolver, kafkaMetaData.SslKeyPEM);
 
                 if (!string.IsNullOrEmpty(kafkaMetaData.SslCertificateandKeyPEM))
                 {
-                    adminConfig.SslCertificatePem = ExtractCertificate(kafkaMetaData.SslCertificateandKeyPEM);
-                    adminConfig.SslKeyPem = ExtractPrivateKey(kafkaMetaData.SslCertificateandKeyPEM);
+                    adminConfig.SslCertificatePem = PemHelper.ExtractCertificate(kafkaMetaData.SslCertificateandKeyPEM);
+                    adminConfig.SslKeyPem = PemHelper.ExtractPrivateKey(kafkaMetaData.SslCertificateandKeyPEM);
                 }
 
                 if (kafkaMetaData.AuthenticationMode != BrokerAuthenticationMode.NotSet)
@@ -101,30 +101,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         public ITargetScaler GetTargetScaler()
         {
             return _targetScaler;
-        }
-
-        private string ExtractSection(string pemString, string sectionName)
-        {
-            if (!string.IsNullOrEmpty(pemString))
-            {
-                var regex = new Regex($"-----BEGIN {sectionName}-----(.*?)-----END {sectionName}-----", RegexOptions.Singleline);
-                var match = regex.Match(pemString);
-                if (match.Success)
-                {
-                    return match.Value.Replace("\\n", "\n");
-                }
-            }
-            return null;
-        }
-
-        private string ExtractCertificate(string pemString)
-        {
-             return ExtractSection(pemString, "CERTIFICATE");
-        }
-
-        private string ExtractPrivateKey(string pemString)
-        {
-            return ExtractSection(pemString, "PRIVATE KEY");
         }
 
         internal class KafkaMetaData

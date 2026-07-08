@@ -112,14 +112,14 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 consumerConfig.SslKeyPassword = this.config.ResolveSecureSetting(nameResolver, attribute.SslKeyPassword);
                 consumerConfig.SslCertificateLocation = GetValidFilePath(attribute.SslCertificateLocation);
                 consumerConfig.SslCaLocation = GetValidFilePath(attribute.SslCaLocation);
-                consumerConfig.SslCaPEM = ExtractCertificate(this.config.ResolveSecureSetting(nameResolver, attribute.SslCaPEM));
-                consumerConfig.SslCertificatePEM = ExtractCertificate(this.config.ResolveSecureSetting(nameResolver, attribute.SslCertificatePEM));
-                consumerConfig.SslKeyPEM = ExtractPrivateKey(this.config.ResolveSecureSetting(nameResolver, attribute.SslKeyPEM));
+                consumerConfig.SslCaPEM = PemHelper.ExtractCertificate(this.config.ResolveSecureSetting(nameResolver, attribute.SslCaPEM));
+                consumerConfig.SslCertificatePEM = PemHelper.ExtractCertificate(this.config.ResolveSecureSetting(nameResolver, attribute.SslCertificatePEM));
+                consumerConfig.SslKeyPEM = PemHelper.ExtractPrivateKey(this.config.ResolveSecureSetting(nameResolver, attribute.SslKeyPEM));
                 consumerConfig.SslCertificateandKeyPEM = this.config.ResolveSecureSetting(nameResolver, attribute.SslCertificateandKeyPEM);
 
                 if (!string.IsNullOrEmpty(consumerConfig.SslCertificateandKeyPEM)) {
-                    consumerConfig.SslCertificatePEM = ExtractCertificate(consumerConfig.SslCertificateandKeyPEM);
-                    consumerConfig.SslKeyPEM = ExtractPrivateKey(consumerConfig.SslCertificateandKeyPEM);
+                    consumerConfig.SslCertificatePEM = PemHelper.ExtractCertificate(consumerConfig.SslCertificateandKeyPEM);
+                    consumerConfig.SslKeyPEM = PemHelper.ExtractPrivateKey(consumerConfig.SslCertificateandKeyPEM);
                 }
 
                 if (attribute.AuthenticationMode != BrokerAuthenticationMode.NotSet)
@@ -158,30 +158,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 throw new Exception($"{location} is not a valid file location");
             }
             return validPath;
-        }
-
-        private string ExtractSection(string pemString, string sectionName)
-        {
-            if (!string.IsNullOrEmpty(pemString))
-            {
-                var regex = new Regex($"-----BEGIN {sectionName}-----(.*?)-----END {sectionName}-----", RegexOptions.Singleline);
-                var match = regex.Match(pemString);
-                if (match.Success)
-                {
-                    return match.Value.Replace("\\n", "\n");
-                }
-            }
-            return null;
-        }
-
-        private string ExtractCertificate(string pemString)
-        {
-            return ExtractSection(pemString, "CERTIFICATE");
-        }
-
-        private string ExtractPrivateKey(string pemString)
-        {
-            return ExtractSection(pemString, "PRIVATE KEY");
         }
     }
 }
